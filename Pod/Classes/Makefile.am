@@ -17,27 +17,28 @@
 # along with GNU libmatheval.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-ACLOCAL_AMFLAGS = -I m4
+MAINTAINERCLEANFILES = Makefile.in parser.c parser.h scanner.c
 
-AUX_DIST = $(ac_aux_dir)/compile $(ac_aux_dir)/config.guess		\
-$(ac_aux_dir)/config.sub $(ac_aux_dir)/depcomp $(ac_aux_dir)/install-sh	\
-$(ac_aux_dir)/ltmain.sh $(ac_aux_dir)/mdate-sh $(ac_aux_dir)/missing	\
-$(ac_aux_dir)/mkinstalldirs $(ac_aux_dir)/texinfo.tex
+EXTRA_DIST = parser.h
 
-MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config.h.in	\
-config.log config.status stamp-h.in $(AUX_DIST)
+INCLUDES = -I$(top_builddir) -I$(top_srcdir)
 
-SUBDIRS = doc lib tests
+lib_LTLIBRARIES = libmatheval.la
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libmatheval.pc
+libmatheval_la_SOURCES = parser.y scanner.l error.c matheval.c	\
+g77_interface.c node.c symbol_table.c xmalloc.c xmath.c
 
-.PHONY: beauty dist-hook
+libmatheval_la_LDFLAGS = -version-info 1:0:0
+libmatheval_la_LIBADD = @LEXLIB@ -lm
+
+include_HEADERS = matheval.h
+noinst_HEADERS = common.h error.h node.h symbol_table.h xmalloc.h	\
+xmath.h
+
+AM_YFLAGS = -d
+
+.PHONY: beauty
 
 beauty:
-	-for dir in lib tests; do cd $$dir; $(MAKE) $@; cd ..; done
-
-dist-hook:
-	for file in $(AUX_DIST); do \
-	  cp $$file $(distdir)/$$file; \
-	done
+	-for file in $$(ls *.c *.h); do indent -orig -i8 -ncdb $$file; done
+	-rm -f *~
